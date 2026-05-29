@@ -13,7 +13,7 @@ if not os.path.exists(DATA_FILE):
 # Page Configuration & Styling
 st.set_page_config(page_title="TanuVind AVFO Portal", page_icon="🐾", layout="wide")
 
-# Custom CSS for TanuVind Theme (Blue & Premium look)
+# Custom CSS for TanuVind Theme
 st.markdown("""
     <style>
     .main-title { font-size: 40px; font-weight: bold; color: #0F172A; text-align: center; font-family: 'Arial'; }
@@ -23,14 +23,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# App Header with TanuVind Branding
+# App Header
 st.markdown("<div class='main-title'>🐾 TanuVind Veterinary Digital Portal</div>", unsafe_allow_html=True)
 st.markdown("<div class='brand-sub'>Assistant Veterinary Field Officer (AVFO) Emergency & Info Cell</div>", unsafe_allow_html=True)
 st.write("---")
 
-# Sidebar: Useful Veterinary Tips & Helpline
+# Sidebar: Useful Veterinary Tips
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2138/2138440.png", width=100) # Simple Vet Icon
+    st.image("https://cdn-icons-png.flaticon.com/512/2138/2138440.png", width=100)
     st.markdown("## 🏥 TanuVind Helpdesk")
     st.info("📞 **AVFO Emergency Helpline:**\n+91 XXXX-XXXXXX")
     
@@ -40,7 +40,7 @@ with st.sidebar:
     <div class='tip-box'>
     <strong>🚨 Garmi se Bachayein:</strong><br>
     1. Pashuon ko din me kam se kam 2-3 baar saaf aur thanda pani pilayein.<br>
-    2. Dopahar 12 se 4 ke beech dhoop me na bandhein.<br>
+    2. Kutta/Billi ko dhoop me khadi gaadi me akela na chhodhein.<br>
     3. Dudharu pashuon ko hare chare ke saath namak ka paani dein.
     </div>
     """, unsafe_allow_html=True)
@@ -52,20 +52,20 @@ with col1:
     st.markdown("### 📝 आपातकालीन चिकित्सा फॉर्म (TanuVind Request Form)")
     
     with st.form(key='tanuvind_form', clear_on_submit=True):
-        name = st.text_input("👤 आपका नाम (Farmer's Name)*")
+        name = st.text_input("👤 आपका नाम / मालिक का नाम (Owner's Name)*")
         phone = st.text_input("📞 मोबाइल नंबर (Mobile Number)*")
-        village = st.text_input("📍 ग्राम/गांव का नाम (Village)*")
+        village = st.text_input("📍 ग्राम / शहर का नाम (Village/City)*")
         
+        # YAHAN KUTTA AUR BILLI ADD KIYA HAI
         animal_type = st.selectbox("🐄 पशु का प्रकार (Select Animal)*", 
-                                   ["गाय (Cow)", "भैंस (Buffalo)", "बकरी (Goat)", "भेड़ (Sheep)", "अन्य (Other)"])
+                                   ["गाय (Cow)", "भैंस (Buffalo)", "बकरी (Goat)", "कुत्ता (Dog)", "बिल्ली (Cat)", "अन्य (Other)"])
         
         problem = st.text_area("⚠️ बीमारी के लक्षण / समस्या (Symptoms/Problem)*")
         
-        # Interactive Emergency Toggle
         is_emergency = st.toggle("🚨 क्या यह बहुत गंभीर मामला है? (Is this a Critical Emergency?)", value=False)
         
         if is_emergency:
-            st.markdown("<div class='emergency-box'>⚠️ **Dhyan dein:** Emergency select karne par TanuVind System se AVFO ko turant hara/red alert chala jayega.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='emergency-box'>⚠️ **Dhyan dein:** Emergency select karne par TanuVind System se AVFO ko turant alert chala jayega.</div>", unsafe_allow_html=True)
             
         submit_button = st.form_submit_button(label='🚀 TanuVind Portal par Submit Karein')
 
@@ -95,21 +95,27 @@ with col2:
     st.markdown("### 🧮 TanuVind Cost Calculator")
     st.write("Dawa aur ilaaj ka andajatan kharcha:")
     
-    calc_animal = st.selectbox("Pashu chunein:", ["गाय/भैंस", "बकरी/भेड़"])
-    calc_issue = st.selectbox("Bimari/Service:", ["सामान्य बुखार (Fever)", "टीकाकरण (Vaccination)", "Prasav (Delivery)", "Emergency Case"])
+    # CALCULATOR ME BHI OPTIONS BADLE HAIN
+    calc_animal = st.selectbox("Pashu chunein:", ["गाय/भैंस", "बकरी/भेड़", "कुत्ता/बिल्ली"])
+    calc_issue = st.selectbox("Bimari/Service:", ["सामान्य बुखार (Fever)", "टीकाकरण (Vaccination)", "नसबंदी / प्रसव (Surgery/Delivery)", "Emergency Case"])
     
-    # Simple logic to calculate cost
+    # Calculation Logic with Dog/Cat pricing
     cost = 0
     if calc_animal == "गाय/भैंस":
         if calc_issue == "सामान्य बुखार (Fever)": cost = "₹150 - ₹300"
         elif calc_issue == "टीकाकरण (Vaccination)": cost = "Free (Govt Scheme)"
-        elif calc_issue == "Prasav (Delivery)": cost = "₹500 - ₹1000"
+        elif calc_issue == "नसबंदी / प्रसव (Surgery/Delivery)": cost = "₹500 - ₹1000"
         else: cost = "₹400 - ₹800"
-    else:
+    elif calc_animal == "बकरी/भेड़":
         if calc_issue == "सामान्य बुखार (Fever)": cost = "₹50 - ₹150"
         elif calc_issue == "टीकाकरण (Vaccination)": cost = "Free (Govt Scheme)"
-        elif calc_issue == "Prasav (Delivery)": cost = "₹200 - ₹500"
+        elif calc_issue == "नसबंदी / प्रसव (Surgery/Delivery)": cost = "₹200 - ₹500"
         else: cost = "₹150 - ₹300"
+    else: # Kutta/Billi ke liye
+        if calc_issue == "सामान्य बुखार (Fever)": cost = "₹100 - ₹250"
+        elif calc_issue == "टीकाकरण (Vaccination)": cost = "₹200 - ₹500 (Rabies, etc.)"
+        elif calc_issue == "नसबंदी / प्रसव (Surgery/Delivery)": cost = "₹1200 - ₹2500 (Sterilization)"
+        else: cost = "₹300 - ₹600"
         
     st.metric(label="Andajatan Fees/Kharcha", value=cost)
     st.caption("*Note: Yeh kharcha TanuVind standard ke hisab se andajatan hai.")
