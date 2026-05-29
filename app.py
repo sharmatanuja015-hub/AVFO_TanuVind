@@ -5,10 +5,13 @@ import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime
 
-# --- 📧 EMAIL CONFIGURATION (Apni Details Yahan Bharein) ---
-SENDER_EMAIL = "your_email@gmail.com"      # Aapki Gmail ID jisse mail jayega
-SENDER_PASSWORD = "your_app_password"      # 16-digit ka Google App Password (bina space ke)
-RECEIVER_EMAIL = "your_email@gmail.com"    # Jis mail par aap alert paana chahte hain (Aapki apni ID)
+# --- 📧 EMAIL CONFIGURATION ---
+SENDER_EMAIL = "your_email@gmail.com"      
+SENDER_PASSWORD = "your_app_password"      
+RECEIVER_EMAIL = "your_email@gmail.com"    
+
+# --- 🔑 ADMIN PASSWORD (Aapka Dashboard Password) ---
+ADMIN_PASSWORD = "TanuVind@2026"  # Aap is password ko badal sakte hain
 
 # Database File
 DATA_FILE = "tanuvind_avfo_requests.csv"
@@ -20,7 +23,6 @@ if not os.path.exists(DATA_FILE):
 # Function to Send Email Alert
 def send_email_alert(name, phone, village, animal, problem, emergency_status):
     subject = f"🚨 TanuVind Alert: New Case Registered ({emergency_status})"
-    
     body = f"""
     🚨 NAYA PASHU CHIKITSA CASE DARJ HUA HAI!
     
@@ -34,23 +36,19 @@ def send_email_alert(name, phone, village, animal, problem, emergency_status):
     ---
     TanuVind Care Digital System 🐾
     """
-    
     msg = MIMEText(body)
     msg['Subject'] = subject
     msg['From'] = SENDER_EMAIL
     msg['To'] = RECEIVER_EMAIL
-    
     try:
-        # Connecting to Gmail SMTP Server
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
             server.sendmail(SENDER_EMAIL, RECEIVER_EMAIL, msg.as_string())
         return True
     except Exception as e:
-        st.sidebar.error(f"Mail send karne me error aaya: {e}")
         return False
 
-# Page Configuration & Styling
+# Page Configuration
 st.set_page_config(page_title="TanuVind AVFO Portal", page_icon="🐾", layout="centered")
 
 st.markdown("""
@@ -71,11 +69,10 @@ st.markdown("<div class='main-title'>🐾 TanuVind Veterinary Digital Portal</di
 st.markdown("<div class='brand-sub'>Assistant Veterinary Field Officer (AVFO) Emergency & Info Cell</div>", unsafe_allow_html=True)
 st.write("---")
 
-# Sidebar: Useful Veterinary Tips
+# Sidebar
 with st.sidebar:
     st.markdown("## 🏥 TanuVind Helpdesk")
     st.info("📞 **AVFO Emergency Helpline:**\n+91 XXXX-XXXXXX")
-    
     st.write("---")
     st.markdown("### ☀️ Mausam Aur Pashu Dekhbhal (Tips)")
     st.markdown("""
@@ -94,12 +91,8 @@ with st.form(key='tanuvind_form', clear_on_submit=True):
     name = st.text_input("👤 आपका नाम / मालिक का नाम (Owner's Name)*")
     phone = st.text_input("📞 मोबाइल नंबर (Mobile Number)*")
     village = st.text_input("📍 ग्राम / शहर का नाम (Village/City)*")
-    
-    animal_type = st.selectbox("🐄 पशु का प्रकार (Select Animal)*", 
-                               ["गाय (Cow)", "भैंस (Buffalo)", "बकरी (Goat)", "कुत्ता (Dog)", "बिल्ली (Cat)", "अन्य (Other)"])
-    
+    animal_type = st.selectbox("🐄 पशु का प्रकार (Select Animal)*", ["गाय (Cow)", "भैंस (Buffalo)", "बकरी (Goat)", "कुत्ता (Dog)", "बिल्ली (Cat)", "अन्य (Other)"])
     problem = st.text_area("⚠️ बीमारी के लक्षण / समस्या (Symptoms/Problem)*")
-    
     is_emergency = st.toggle("🚨 क्या यह बहुत गंभीर मामला है? (Is this a Critical Emergency?)", value=False)
     
     if is_emergency:
@@ -112,7 +105,7 @@ if submit_button:
         emergency_status = "🚨 CRITICAL EMERGENCY" if is_emergency else "Normal Case"
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # Save Data to CSV
+        # Save Data
         new_data = {
             "Timestamp": [current_time], "Naam": [name], "Mobile": [phone], 
             "Gaon": [village], "Pashu": [animal_type], "Samasya": [problem], 
@@ -123,24 +116,32 @@ if submit_button:
         
         st.success(f"🎉 धन्यवाद {name} ji! TanuVind Portal par aapki request darj ho gayi hai.")
         
-        # --- EMAIL NOTIFICATION TRIGGER ---
         with st.spinner("📧 Email notification bheja aa raha hai..."):
             mail_sent = send_email_alert(name, phone, village, animal_type, problem, emergency_status)
             if mail_sent:
                 st.info("📩 AVFO Desk ko email alert kamyabi se bhej diya gaya hai.")
             else:
-                st.warning("⚠️ Request save ho gayi hai par email bhejte waqt dikkat aayi (Check App Password).")
-                
+                st.warning("⚠️ Request save ho gayi hai par email bhejte waqt dikkat aayi.")
     else:
         st.error("❌ Kripya sabhi zaroori jankari (*) bharein.")
 
 st.write("---")
 
-# AVFO Admin Dashboard
-if st.checkbox("🔑 TanuVind Admin Dashboard (For Officer Use Only)"):
-    st.markdown("### 📋 Sabhi Active Cases & Emergency Alerts")
-    try:
-        current_requests = pd.read_csv(DATA_FILE)
-        st.dataframe(current_requests)
-    except Exception as e:
-        st.write("Abhi tak koi data nahi hai.")
+# --- PASSWORD PROTECTED AVFO ADMIN DASHBOARD ---
+# Normal users ko sirf ek simple checkbox dikhega, bina password ke data nahi dikhega
+if st.checkbox("🔑 AVFO Dashboard (🔒 Staff Only)"):
+    password_input = st.text_input("Enter Admin Security PIN/Password:", type="password")
+    
+    if password_input == ADMIN_PASSWORD:
+        st.success("🔓 Access Granted! Welcome Officer.")
+        st.markdown("### 📋 Sabhi Active Cases & Emergency Alerts")
+        try:
+            current_requests = pd.read_csv(DATA_FILE)
+            st.dataframe(current_requests)
+        except Exception as e:
+            st.write("Abhi tak koi data nahi hai.")
+    elif password_input:
+        st.error("❌ Galat Password! Aapko data dekhne ki permission nahi hai.")
+            st.write("Abhi tak koi data nahi hai.")
+    elif password_input:
+        st.error("❌ Galat Password! Aapko data dekhne ki permission nahi hai.")
